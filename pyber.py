@@ -109,6 +109,7 @@ for typ, color in zip(figures, colors):
     figures[typ].savefig(f"ridesharing_{typ}.jpeg", dpi=300, bbox_inches='tight')
 
 # %%
+# Plotting Bubble All City Types
 # Generating multiple plots in the same axis,
 # The variatons are city types and colors.
 # Once created, write text to figure and save.
@@ -120,22 +121,43 @@ fig.text(**text_kwargs)
 fig.savefig(f"ridesharing.jpeg", dpi=300, bbox_inches='tight')
 
 # %%
-# Creating Box and Whisker
-
+# Get Stats for Box and Whisker
 def get_params(func):
+    """Gets mean, median, mode for given data."""
     def wrapped(dataset):
         return pd.DataFrame({param: func(dataset, method)
                 for param, method in zip(
-                    ["mean", "median", "mode"],
-                    [np.mean, np.median, sts.mode])})
+                    ["mean", "median", "mode", "std"],
+                    [np.mean, np.median, sts.mode, np.std])})
     return wrapped
     
 @get_params
-def get_stats_from(dataset, func):
-    return {city_type: func(dataset[city_type])
+def get_stats_from(dataset, function):
+    """Gets stats for city types."""
+    return {city_type: function(dataset[city_type])
         for city_type in CITY_TYPES}
 
 ride_count_stats = get_stats_from(ride_count)
 fare_stats = get_stats_from(fares)
 drivers_stats = get_stats_from(drivers)
 drivers_stats
+# %%
+# Creating Box and Whisker
+x_labels = ["Urban", "Suburban","Rural"]
+fig, ax = plt.subplots()
+ax.set_title('Ride Count Data (2019)',fontsize=20)
+ax.set_ylabel('Number of Rides',fontsize=14)
+ax.set_xlabel("City Types",fontsize=14)
+ax.boxplot(ride_count.values(), labels=x_labels)
+ax.set_yticks(np.arange(0, 45, step=3.0))
+ax.grid()
+plt.savefig("ride_count_data.png")
+plt.show()
+
+# for city_type in ride_count:
+#     upper_bound = ride_count_stats[city_type][""]
+#     criteria = ride_count[city_type] >= upper_bound
+#     outliers = ride_count[city_type][criteria]
+
+# urban_city_outlier = ride_count[CITY_TYPES.URBAN][ride_count[CITY_TYPES.URBAN]==39].index[0]
+# print(f"{urban_city_outlier} has the highest rider count.")
