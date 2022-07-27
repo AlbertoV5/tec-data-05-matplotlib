@@ -57,28 +57,39 @@ def create_bubble_chart(ax: plt.Axes, city_type: str, color: str):
     ax.set_xlabel("Total Number of Rides (Per City)")
     ax.set_ylabel("Average Fare ($)")
     ax.grid(True)
-    ax.legend()
+    # ax.legend()
+    legend = ax.legend(fontsize="12", mode="Expanded",
+         scatterpoints=1, loc="best", title="City Type")
+    for lg in legend.legendHandles:
+        lg._sizes = [75]
+    legend.get_title().set_fontsize(12)
     return ax
 
 # %%
 # Plots
-# Urban
-urban_fig = plt.figure(figsize=(8,5))
-create_bubble_chart(urban_fig.add_subplot(111), TYPE.URBAN, "coral", save=True)
-urban_fig.savefig("ridesharing_urban.png", dpi=144)
-# Suburban
-suburban_fig = plt.figure(figsize=(8,5))
-create_bubble_chart(suburban_fig.add_subplot(111), TYPE.SUBURBAN, "skyblue", save=True)
-suburban_fig.savefig("ridesharing_suburban.png", dpi=144)
-# Rural
-rural_fig = plt.figure(figsize=(8,5))
-create_bubble_chart(rural_fig.add_subplot(111), TYPE.RURAL, "gold", save=True)
-rural_fig.savefig("ridesharing_rural.png", dpi=144)
+figures = {
+    typ: plt.figure(figsize=(8,5)) for i in range(0,3)
+    for typ in TYPE
+}
+colors = ["coral", "skyblue", "gold"]
+text_kwargs = {
+    "x": 0.92, "y":0.5, 
+    "s": "Note: Circle size\ncorrelates with\ndriver per country.", 
+    "fontsize": 10,
+    "horizontalalignment":'left',
+    "verticalalignment":'center', 
+    "bbox":dict(facecolor='white', alpha=0.7)
+}
+for typ, color in zip(figures, colors):
+    create_bubble_chart(figures[typ].add_subplot(111), typ, color)
+    figures[typ].text(**text_kwargs)
+    figures[typ].savefig(f"ridesharing_{typ}.jpeg", dpi=300, bbox_inches='tight')
 
 # %%
+# Combined plot
 fig = plt.figure(figsize=(8,5))
 ax1 = fig.add_subplot(111)
-create_bubble_chart(ax1, TYPE.URBAN, "coral")
-create_bubble_chart(ax1, TYPE.SUBURBAN, "skyblue")
-create_bubble_chart(ax1, TYPE.RURAL, "gold")
-fig.savefig(f"ridesharing.png", dpi=144)
+for typ, color in zip(TYPE, colors):
+    ax = create_bubble_chart(ax1, typ, color)
+fig.text(**text_kwargs)
+fig.savefig(f"ridesharing.jpeg", dpi=300, bbox_inches='tight')
