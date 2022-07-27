@@ -1,9 +1,11 @@
 # %%
+# Setup cell to define dataframes and functions
 from collections import namedtuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from pathlib import Path
+import scipy.stats as sts
 
 resources = Path("resources")
 city_data_df = pd.read_csv(resources / "city_data.csv")
@@ -23,23 +25,25 @@ CITY_TYPES = namedtuple(
 pyber_data_df = city_data_df.merge(ride_data_df, on=[COL.CITY, COL.CITY]).set_index(COL.CITY)
 
 # Separate data per city type and group by city
-type_groups = {
-    typ: pyber_data_df[pyber_data_df[COL.TYPE] == typ].groupby([COL.CITY])
+city_types_dict = {
+    typ: pyber_data_df[pyber_data_df[COL.TYPE] == typ]
     for typ in CITY_TYPES
 }
 def get_count_by_city_by_type(col: str) -> dict:
     """Return dictionary of city types with values of
     series of counts of specified column."""
-    return {typ: type_groups[typ].count()[col] for typ in type_groups}
+    return {typ: city_types_dict[typ].groupby([COL.CITY]).count()[col] for typ in city_types_dict}
             
 def get_average_by_city_by_type(col: str) -> dict:
     """Return dictionary of city types with values of
     series of averages of specified column."""
-    return {typ: type_groups[typ].mean()[col] for typ in type_groups}
+    return {typ: city_types_dict[typ].groupby([COL.CITY]).mean()[col] for typ in city_types_dict}
 
 # Per City Type
 ride_count = get_count_by_city_by_type(COL.RIDE)
 fare_average = get_average_by_city_by_type(COL.FARE)
+fares = {typ: city_types_dict[typ][COL.FARE] for typ in CITY_TYPES}
+drivers = {typ: city_types_dict[typ][COL.DRIVERS] for typ in CITY_TYPES}
 drivers_average = get_average_by_city_by_type(COL.DRIVERS)
 
 def create_bubble_chart(ax: plt.Axes, city_type: str, color: str) -> plt.Axes:
@@ -80,15 +84,6 @@ def create_bubble_chart(ax: plt.Axes, city_type: str, color: str) -> plt.Axes:
     legend.get_title().set_fontsize(12)
     return ax
 
-# %%
-# Creating multiple figures to save various plots.
-# Each figure uses a different city type and color.
-# We create a new axis per figure everytime, add text to it
-# and finally save to disk.
-figures = {
-    typ: plt.figure(figsize=(8,5)) for i in range(0,3)
-    for typ in CITY_TYPES
-}
 colors = ["coral", "skyblue", "gold"]
 text_kwargs = {
     "x": 0.92, "y":0.5, 
@@ -97,6 +92,16 @@ text_kwargs = {
     "horizontalalignment":'left',
     "verticalalignment":'center', 
     "bbox":dict(facecolor='white', alpha=0.7)
+}
+
+# %%
+# Creating multiple figures to save various plots.
+# Each figure uses a different city type and color.
+# We create a new axis per figure everytime, add text to it
+# and finally save to disk.
+figures = {
+    typ: plt.figure(figsize=(8,5)) for i in range(0,3)
+    for typ in CITY_TYPES
 }
 for typ, color in zip(figures, colors):
     create_bubble_chart(figures[typ].add_subplot(111), typ, color)
@@ -108,11 +113,29 @@ for typ, color in zip(figures, colors):
 # The variatons are city types and colors.
 # Once created, write text to figure and save.
 fig = plt.figure(figsize=(8,5))
-ax1 = fig.add_subplot(111)
+ax = fig.add_subplot(111)
 for typ, color in zip(CITY_TYPES, colors):
-    ax = create_bubble_chart(ax1, typ, color)
+    create_bubble_chart(ax, typ, color)
 fig.text(**text_kwargs)
 fig.savefig(f"ridesharing.jpeg", dpi=300, bbox_inches='tight')
 
 # %%
-type_groups[CITY_TYPES.URBAN].describe().describe()
+# Creating Box and Whisker
+
+def get_params(func):
+    def wrapped(dataset):
+        return pd.DataFrame({param: func(dataset, method)
+                for param, method in zip(
+                    ["mean", "median", "mode"],
+                    [np.mean, np.median, sts.mode])})
+    return wrapped
+    
+@get_params
+def get_stats_from(dataset, func):
+    return {city_type: func(dataset[city_type])
+        for city_type in CITY_TYPES}
+
+ride_count_stats = get_stats_from(ride_count)
+fare_stats = get_stats_from(fares)
+drivers_stats = get_stats_from(drivers)
+drivers_stats
