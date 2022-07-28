@@ -169,8 +169,7 @@ def plot_box_and_whisker(
     ax.boxplot(dataset.values(), labels=x_labels)
     ax.set_yticks(yticks)
     ax.grid()
-    plt.savefig("ride_count_data.jpeg", dpi=300)
-    plt.show()
+    return ax
 
 # Ride Count
 fig, ax = plt.subplots()
