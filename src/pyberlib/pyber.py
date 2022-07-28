@@ -45,7 +45,7 @@ class Pyber:
         }
     
     @classmethod
-    def apply_stats_func(cls, series: pd.Series):
+    def apply_stats_func(cls, series: pd.Series) -> dict:
         """Return the results of statistical functions
         applied to the series."""
         stats = ["mean", "median", "mode", "q1", "q3"]
@@ -54,7 +54,7 @@ class Pyber:
         return {stat: func(series) for stat, func in zip(stats, functions)}
 
     @classmethod
-    def get_stats(cls, dataset: dict):
+    def get_stats(cls, dataset: dict) -> pd.DataFrame:
         """Get all the statistical data, mean, mode, etc.
         for all the elements in the dataset. Returns a DF."""
         return pd.DataFrame(
@@ -63,7 +63,7 @@ class Pyber:
         )
 
     @classmethod
-    def calculate_outliers(cls, data, stats):
+    def calculate_outliers(cls, data: pd.DataFrame, stats: pd.DataFrame) -> pd.Series:
         """Use IQR to locate out of bounds outliers."""
         q1 = stats["q1"]
         q3 = stats["q3"]
@@ -72,7 +72,7 @@ class Pyber:
         return data[(data >= upper_bound) | (data <= lower_boud)]
 
     @classmethod
-    def find_outliers(cls, data: dict, stats: dict):
+    def find_outliers(cls, data: dict, stats: pd.DataFrame) -> pd.DataFrame:
         """Return a dataframe of all outliers in the data."""
         return pd.DataFrame({t: cls.calculate_outliers(data[t], stats[t]) for t in Pyber.city_types})
 
