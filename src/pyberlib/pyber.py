@@ -19,7 +19,7 @@ class Pyber:
     }
     COL = namedtuple(
         "Columns",
-        "CITY TYPE FARE DRIVERS RIDE",
+        "CITY CITY_TYPE FARE DRIVERS RIDES",
         defaults=["city", "type", "fare", "driver_count", "ride_id"],
     )()
     city_types = namedtuple(
@@ -41,6 +41,15 @@ class Pyber:
         series of averages of specified column."""
         return {
             typ: city_types_dict[typ].groupby([cls.COL.CITY])[col].mean()
+            for typ in city_types_dict
+        }
+    
+    @classmethod
+    def get_sum(cls, city_types_dict: dict, col: str) -> dict:
+        """Return dictionary of city types with values of
+        series of sums of specified column."""
+        return {
+            typ: city_types_dict[typ].groupby([cls.COL.CITY])[col].sum()
             for typ in city_types_dict
         }
     
