@@ -1,0 +1,11 @@
+LICENSE
+setup.cfg
+setup.py
+src/pyberlib/__init__.py
+src/pyberlib/plot.py
+src/pyberlib/py.typed
+src/pyberlib.egg-info/PKG-INFO
+src/pyberlib.egg-info/SOURCES.txt
+src/pyberlib.egg-info/dependency_links.txt
+src/pyberlib.egg-info/requires.txt
+src/pyberlib.egg-info/top_level.txt
