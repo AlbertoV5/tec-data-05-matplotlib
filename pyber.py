@@ -10,6 +10,7 @@ from collections import namedtuple
 
 
 resources = Path("resources")
+output_path = Path("analysis")
 city_data_df = pd.read_csv(resources / "city_data.csv")
 ride_data_df = pd.read_csv(resources / "ride_data.csv")
 
@@ -20,7 +21,7 @@ COL = namedtuple(
 )()
 CITY_TYPES = namedtuple(
     "CityTypes", "URBAN SUBURBAN RURAL", 
-    defaults=["Urban", "Suburban", "Rural"]
+    defaults=["Urban", "Suburban", "Rural",]
 )()
 
 # Merge data
@@ -49,22 +50,14 @@ fare_average = get_average_by_city_by_type(COL.FARE)
 
 drivers_average = get_average_by_city_by_type(COL.DRIVERS)
 
-def create_bubble_chart(ax: plt.Axes, city_type: str, color: str) -> plt.Axes:
+
+# %%
+# Create all the Bubble Plots.
+def plot_bubble_chart(ax: plt.Axes, city_type: str, color: str) -> plt.Axes:
     """
     Generate a scatter-bubble chart in the specified axis.
     This depends on previously made dictionaries where
     the key is city type and the value is a pandas series.
-
-    Each pandas series will contain the data for the x, y, s
-    scatter plot arguments.
-
-    Args:
-        ax (plt.Axes): Axis on which to generate the plot.
-        city_type (str): Key for dictionary.
-        color (str): Chosen color for this plot.
-
-    Returns:
-        plt.Axes: The same axis reference.
     """
     ax.scatter(
         ride_count[city_type], 
@@ -87,8 +80,6 @@ def create_bubble_chart(ax: plt.Axes, city_type: str, color: str) -> plt.Axes:
     legend.get_title().set_fontsize(12)
     return ax
 
-# %%
-# Create all the Bubble Plots.
 colors = ["coral", "skyblue", "gold"]
 text_kwargs = {
     "x": 0.92, "y":0.5, 
@@ -103,16 +94,16 @@ figures = {
     for typ in CITY_TYPES
 }
 for typ, color in zip(figures, colors):
-    create_bubble_chart(figures[typ].add_subplot(111), typ, color)
+    plot_bubble_chart(figures[typ].add_subplot(111), typ, color)
     figures[typ].text(**text_kwargs)
-    figures[typ].savefig(f"ridesharing_{typ}.jpeg", dpi=300, bbox_inches='tight')
+    figures[typ].savefig(output_path/ f"ridesharing_{typ}.jpeg", dpi=300, bbox_inches='tight')
 
 fig = plt.figure(figsize=(8,5))
 ax = fig.add_subplot(111)
 for typ, color in zip(CITY_TYPES, colors):
-    create_bubble_chart(ax, typ, color)
+    plot_bubble_chart(ax, typ, color)
 fig.text(**text_kwargs)
-fig.savefig(f"ridesharing.jpeg", dpi=300, bbox_inches='tight')
+fig.savefig(output_path/ f"ridesharing.jpeg", dpi=300, bbox_inches='tight')
 
 
 # %%
@@ -155,9 +146,10 @@ ride_count_outliers
 # %%
 # Create Box and Whiskers plots
 def plot_box_and_whisker(
-    ax: plt.Axes, title: str, ylabel: str, 
-    dataset: dict, yticks: range):
+    fig: plt.Figure, dataset: dict, title: str, 
+    ylabel: str, file_name: str, yticks: range):
     """Create a Box and Whisker from specified dataset."""
+    ax: plt.Axes = fig.add_subplot(111)
     x_labels = [i for i in CITY_TYPES]
     ax.set_title(title,fontsize=20)
     ax.set_ylabel(ylabel,fontsize=14)
@@ -165,42 +157,59 @@ def plot_box_and_whisker(
     ax.boxplot(dataset.values(), labels=x_labels)
     ax.set_yticks(yticks)
     ax.grid()
-    return ax
+    fig.savefig(output_path / file_name, dpi=300)
+    return fig
 
 # Ride Count
-fig, ax = plt.subplots()
-plot_box_and_whisker(ax, "Ride Count Data (2019)",
-    "Number of Rides", ride_count, np.arange(0, 45, step=3.0))
-fig.savefig("ride_count_data.jpeg", dpi=300)
-plt.show()
+plot_box_and_whisker(
+    plt.figure(figsize=(8,5)), ride_count, 
+    "Ride Count Data (2019)", "Number of Rides", 
+    "ride_count_data.jpeg", np.arange(0, 45, step=3.0)
+)
 # Fares
-fig, ax = plt.subplots()
-plot_box_and_whisker(ax, "Ride Fare Data (2019)",
-    "Fare($USD)", fares, np.arange(0, 65, step=5.0))
-fig.savefig("ride_fare_data.jpeg", dpi=300)
-plt.show()
+plot_box_and_whisker(
+    plt.figure(figsize=(8,5)), fares, 
+    "Ride Fare Data (2019)", "Fare($USD)", 
+    "ride_fare_data.jpeg", np.arange(0, 65, step=5.0)
+)
 # Drivers
-fig, ax = plt.subplots()
-plot_box_and_whisker(ax, "Drivers Data (2019)",
-    "Drivers count", drivers, np.arange(0, 80, step=5.0))
-fig.savefig("ride_drivers_data.jpeg", dpi=300)
-plt.show()
+plot_box_and_whisker(
+    plt.figure(figsize=(8,5)), drivers, 
+    "Drivers Data (2019)", "Drivers count", 
+    "ride_drivers_data.jpeg", np.arange(0, 80, step=5.0)
+)
 # %%
 # Create Pie Charts
-type_percents = 100 * pyber_data_df.groupby(["type"]).sum()["fare"] / pyber_data_df["fare"].sum()
-# Build the percentage of fares by city type pie chart.
-# Build Pie Chart
-plt.subplots(figsize=(10, 6))
-plt.pie(type_percents,
-    labels=["Rural", "Suburban", "Urban"],
-    colors=["gold", "lightskyblue", "lightcoral"],
-    explode=[0, 0, 0.1],
-    autopct='%1.1f%%',
-    shadow=True, startangle=150)
-plt.title("% of Total Fares by City Type")
-# Change the default font size from 10 to 14.
-mpl.rcParams['font.size'] = 14
-# Save Figure
-plt.savefig("percentage_of_total_fares.png", dpi=300)
-# Show Figure
-plt.show()
+def plot_pie_chart(fig: plt.Figure, column: str,
+    title: str, file_name: str):
+    """Create Pie Chart of percentages from column name."""
+    type_percents = 100 * pyber_data_df.groupby(["type"]).sum()[column] / pyber_data_df[column].sum()
+    ax: plt.Axes = fig.add_subplot(111)
+    ax.pie(type_percents,
+        labels=["Rural", "Suburban", "Urban"],
+        colors=["gold", "lightskyblue", "lightcoral"],
+        explode=[0, 0, 0.1],
+        autopct='%1.1f%%',
+        shadow=True, startangle=150)
+    ax.set_title(title)
+    mpl.rcParams['font.size'] = 14
+    fig.savefig(output_path / file_name, dpi=300)
+
+# Fares
+plot_pie_chart(
+    plt.figure(figsize=(8,5)), COL.FARE,
+    "% of Total Fares by City Type", 
+    "percentage_total_fares.jpeg"
+)
+# Ride counts
+plot_pie_chart(
+    plt.figure(figsize=(8,5)), COL.RIDE,
+    "% of Total Rides by City Type", 
+    "percentage_total_rides.jpeg"
+)
+# Drivers
+plot_pie_chart(
+    plt.figure(figsize=(8,5)), COL.DRIVERS,
+    "% of Total Drivers by City Type", 
+    "percentage_total_drivers.jpeg"
+)
