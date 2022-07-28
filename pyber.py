@@ -47,7 +47,6 @@ ride_count = get_count_by_city_by_type(COL.RIDE)
 fares = {typ: city_types_dict[typ][COL.FARE] for typ in CITY_TYPES}
 drivers = {typ: city_types_dict[typ][COL.DRIVERS] for typ in CITY_TYPES}
 fare_average = get_average_by_city_by_type(COL.FARE)
-
 drivers_average = get_average_by_city_by_type(COL.DRIVERS)
 
 
@@ -55,7 +54,7 @@ drivers_average = get_average_by_city_by_type(COL.DRIVERS)
 # Create all the Bubble Plots.
 def plot_bubble_chart(ax: plt.Axes, city_type: str, color: str) -> plt.Axes:
     """
-    Generate a scatter-bubble chart in the specified axis.
+    Generate a scatter-bubble chart.
     This depends on previously made dictionaries where
     the key is city type and the value is a pandas series.
     """
@@ -79,9 +78,9 @@ def plot_bubble_chart(ax: plt.Axes, city_type: str, color: str) -> plt.Axes:
         lg._sizes = [75]
     legend.get_title().set_fontsize(12)
     return ax
-
+# Setup common arguments
 colors = ["coral", "skyblue", "gold"]
-text_kwargs = {
+text_arguments = {
     "x": 0.92, "y":0.5, 
     "s": "Note: Circle size\ncorrelates with\ndriver per country.", 
     "fontsize": 10,
@@ -89,38 +88,40 @@ text_kwargs = {
     "verticalalignment":'center', 
     "bbox":dict(facecolor='white', alpha=0.7)
 }
-figures = {
-    typ: plt.figure(figsize=(8,5)) for i in range(0,3)
-    for typ in CITY_TYPES
-}
-for typ, color in zip(figures, colors):
-    plot_bubble_chart(figures[typ].add_subplot(111), typ, color)
-    figures[typ].text(**text_kwargs)
-    figures[typ].savefig(output_path/ f"ridesharing_{typ}.jpeg", dpi=300, bbox_inches='tight')
+# Individual Plots
+for typ, color in zip(CITY_TYPES, colors):
+    fig = plt.figure(figsize=(8,5))
+    ax = fig.add_subplot(111)
+    plot_bubble_chart(ax, typ, color)
+    fig.text(**text_arguments)
+    fig.savefig(output_path/ f"ridesharing_{typ}.jpeg", dpi=300, bbox_inches='tight')
 
+# Combined Plot
 fig = plt.figure(figsize=(8,5))
 ax = fig.add_subplot(111)
 for typ, color in zip(CITY_TYPES, colors):
     plot_bubble_chart(ax, typ, color)
-fig.text(**text_kwargs)
+fig.text(**text_arguments)
 fig.savefig(output_path/ f"ridesharing.jpeg", dpi=300, bbox_inches='tight')
-
 
 # %%
 # Get stats of all dataframes by city type
 quartile_1 = lambda x: np.quantile(x, 0.25)
 quartile_3 = lambda x: np.quantile(x, 0.75)
-    
-def get_stats(dataset):
+
+def get_stats(series):
+    """Return the results of statistical functions
+    applied to the series."""
     stats = ["mean", "median", "mode", "q1", "q3"]
     functions = [np.mean, np.median, sts.mode, quartile_1, quartile_3]
-    return {stat: func(dataset) for stat, func in zip(stats, functions)}
+    return {stat: func(series) for stat, func in zip(stats, functions)}
 
 def get_stats_by_city_types(dataset):
-    """Runs get_stats per city type."""
+    """Get all the statistical data, mean, mode, etc.
+    for all the elements in the dataset. Returns a DF."""
     return pd.DataFrame({city_type: get_stats(dataset[city_type])
         for city_type in CITY_TYPES})
-
+# Execute for the data we want
 ride_count_stats = get_stats_by_city_types(ride_count)
 fare_stats = get_stats_by_city_types(fares)
 drivers_stats = get_stats_by_city_types(drivers)
@@ -129,12 +130,15 @@ ride_count_stats
 # %%
 # Find outliers by city type
 def find_outliers(data, stats):
+    """Use IQR to locate out of bounds outliers."""
     q1 = stats["q1"]
     q3 = stats["q3"]
     upper_bound = q3 + 1.5*(q3 - q1)
-    return data[data>= upper_bound]
+    lower_boud = q1 - 1.5*(q3 - q1)
+    return data[data >= upper_bound]
 
 def find_outliers_by_city_types(data, stats):
+    """Return a dataframe of all outliers in the data."""
     return pd.DataFrame({
         t: find_outliers(data[t], stats[t])
         for t in CITY_TYPES})
