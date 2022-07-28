@@ -122,42 +122,71 @@ fig.savefig(f"ridesharing.jpeg", dpi=300, bbox_inches='tight')
 
 # %%
 # Get Stats for Box and Whisker
-def get_params(func):
-    """Gets mean, median, mode for given data."""
-    def wrapped(dataset):
-        return pd.DataFrame({param: func(dataset, method)
-                for param, method in zip(
-                    ["mean", "median", "mode", "std"],
-                    [np.mean, np.median, sts.mode, np.std])})
-    return wrapped
+quartile_1 = lambda x: np.quantile(x, 0.25)
+quartile_3 = lambda x: np.quantile(x, 0.75)
     
-@get_params
-def get_stats_from(dataset, function):
-    """Gets stats for city types."""
-    return {city_type: function(dataset[city_type])
-        for city_type in CITY_TYPES}
+def get_stats(dataset):
+    stats = ["mean", "median", "mode", "q1", "q3"]
+    functions = [np.mean, np.median, sts.mode, quartile_1, quartile_3]
+    return {stat: func(dataset) for stat, func in zip(stats, functions)}
 
-ride_count_stats = get_stats_from(ride_count)
-fare_stats = get_stats_from(fares)
-drivers_stats = get_stats_from(drivers)
-drivers_stats
+def get_stats_by_city_types(dataset):
+    """Runs get_stats per city type."""
+    return pd.DataFrame({city_type: get_stats(dataset[city_type])
+        for city_type in CITY_TYPES})
+
+ride_count_stats = get_stats_by_city_types(ride_count)
+fare_stats = get_stats_by_city_types(fares)
+drivers_stats = get_stats_by_city_types(drivers)
+ride_count_stats
+
 # %%
-# Creating Box and Whisker
-x_labels = ["Urban", "Suburban","Rural"]
+# Find outliers
+def find_outliers(data, stats):
+    q1 = stats["q1"]
+    q3 = stats["q3"]
+    upper_bound = q3 + 1.5*(q3 - q1)
+    return data[data>= upper_bound]
+
+def find_outliers_by_city_types(data, stats):
+    return pd.DataFrame({
+        t: find_outliers(data[t], stats[t])
+        for t in CITY_TYPES})
+
+ride_count_outliers = find_outliers_by_city_types(ride_count, ride_count_stats)
+fares_outliers = find_outliers_by_city_types(fares, fare_stats)
+drivers_outliers = find_outliers_by_city_types(drivers, drivers_stats)
+# %%
+# Box and Whisker for Number of Rides
+def plot_box_and_whisker(
+    ax: plt.Axes, title: str, ylabel: str, 
+    dataset: dict, yticks: range):
+    """Create a Box and Whisker from specified dataset."""
+    x_labels = [i for i in CITY_TYPES]
+    ax.set_title(title,fontsize=20)
+    ax.set_ylabel(ylabel,fontsize=14)
+    ax.set_xlabel("City Types",fontsize=14)
+    ax.boxplot(dataset.values(), labels=x_labels)
+    ax.set_yticks(yticks)
+    ax.grid()
+    plt.savefig("ride_count_data.jpeg", dpi=300)
+    plt.show()
+
+# Ride Count
 fig, ax = plt.subplots()
-ax.set_title('Ride Count Data (2019)',fontsize=20)
-ax.set_ylabel('Number of Rides',fontsize=14)
-ax.set_xlabel("City Types",fontsize=14)
-ax.boxplot(ride_count.values(), labels=x_labels)
-ax.set_yticks(np.arange(0, 45, step=3.0))
-ax.grid()
-plt.savefig("ride_count_data.png")
+plot_box_and_whisker(ax, "Ride Count Data (2019)",
+    "Number of Rides", ride_count, np.arange(0, 45, step=3.0))
+fig.savefig("ride_count_data.jpeg", dpi=300)
 plt.show()
-
-# for city_type in ride_count:
-#     upper_bound = ride_count_stats[city_type][""]
-#     criteria = ride_count[city_type] >= upper_bound
-#     outliers = ride_count[city_type][criteria]
-
-# urban_city_outlier = ride_count[CITY_TYPES.URBAN][ride_count[CITY_TYPES.URBAN]==39].index[0]
-# print(f"{urban_city_outlier} has the highest rider count.")
+# Fares
+fig, ax = plt.subplots()
+plot_box_and_whisker(ax, "Ride Fare Data (2019)",
+    "Fare($USD)", fares, np.arange(0, 65, step=5.0))
+fig.savefig("ride_fare_data.jpeg", dpi=300)
+plt.show()
+# Drivers
+fig, ax = plt.subplots()
+plot_box_and_whisker(ax, "Drivers Data (2019)",
+    "Drivers count", drivers, np.arange(0, 80, step=5.0))
+fig.savefig("ride_drivers_data.jpeg", dpi=300)
+plt.show()
