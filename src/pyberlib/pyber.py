@@ -1,14 +1,22 @@
-import matplotlib.pyplot as plt
+"""
+Pyber Plotting Library.
+
+Custom plotting configurations for Pyber data.
+"""
 import pandas as pd
-import numpy as np
-import scipy.stats as sts
 import matplotlib as mpl
-from collections import namedtuple
+import matplotlib.pyplot as plt
+from matplotlib import style
+from matplotlib.colors import ListedColormap
 
 
 class Pyber:
+    dpi = 200
+    fontsize = 8
+    city_types = ["Rural", "Suburban", "Urban"]
     colors = ["coral", "skyblue", "gold"]
-    text_arguments = {
+    colormap = ListedColormap(colors, name="PyBer")
+    bubble_text_args = {
         "x": 0.92,
         "y": 0.5,
         "s": "Note: Circle size\ncorrelates with\ndriver per country.",
@@ -17,77 +25,9 @@ class Pyber:
         "verticalalignment": "center",
         "bbox": dict(facecolor="white", alpha=0.7),
     }
-    COL = namedtuple(
-        "Columns",
-        "CITY CITY_TYPE FARE DRIVERS RIDES",
-        defaults=["city", "type", "fare", "driver_count", "ride_id"],
-    )()
-    city_types = namedtuple(
-        "CityTypes", "URBAN SUBURBAN RURAL", defaults=["Urban", "Suburban", "Rural"]
-    )()
 
     @classmethod
-    def get_counts(cls, city_types_dict: dict, col: str) -> dict:
-        """Return dictionary of city types with values of
-        series of counts of specified column."""
-        return {
-            typ: city_types_dict[typ].groupby([cls.COL.CITY])[col].count()
-            for typ in city_types_dict
-        }
-
-    @classmethod
-    def get_averages(cls, city_types_dict: dict, col: str) -> dict:
-        """Return dictionary of city types with values of
-        series of averages of specified column."""
-        return {
-            typ: city_types_dict[typ].groupby([cls.COL.CITY])[col].mean()
-            for typ in city_types_dict
-        }
-    
-    @classmethod
-    def get_sum(cls, city_types_dict: dict, col: str) -> dict:
-        """Return dictionary of city types with values of
-        series of sums of specified column."""
-        return {
-            typ: city_types_dict[typ].groupby([cls.COL.CITY])[col].sum()
-            for typ in city_types_dict
-        }
-    
-    @classmethod
-    def apply_stats_func(cls, series: pd.Series) -> dict:
-        """Return the results of statistical functions
-        applied to the series."""
-        stats = ["mean", "median", "mode", "q1", "q3"]
-        functions = [np.mean, np.median, sts.mode, 
-            lambda x: np.quantile(x, 0.25), lambda x: np.quantile(x, 0.75)]
-        return {stat: func(series) for stat, func in zip(stats, functions)}
-
-    @classmethod
-    def get_stats(cls, dataset: dict) -> pd.DataFrame:
-        """Get all the statistical data, mean, mode, etc.
-        for all the elements in the dataset. Returns a DF."""
-        return pd.DataFrame(
-            {city_type: cls.apply_stats_func(dataset[city_type]) 
-            for city_type in Pyber.city_types}
-        )
-
-    @classmethod
-    def calculate_outliers(cls, data: pd.DataFrame, stats: pd.DataFrame) -> pd.Series:
-        """Use IQR to locate out of bounds outliers."""
-        q1 = stats["q1"]
-        q3 = stats["q3"]
-        upper_bound = q3 + 1.5 * (q3 - q1)
-        lower_boud = q1 - 1.5 * (q3 - q1)
-        return data[(data >= upper_bound) | (data <= lower_boud)]
-
-    @classmethod
-    def find_outliers(cls, data: dict, stats: pd.DataFrame) -> pd.DataFrame:
-        """Return a dataframe of all outliers in the data."""
-        return pd.DataFrame({t: cls.calculate_outliers(data[t], stats[t]) for t in Pyber.city_types})
-
-
-    @classmethod
-    def plot_bubble_chart(
+    def _chart_bubble(
         cls,
         ax: plt.Axes,
         x_axis: pd.Series,
@@ -136,11 +76,17 @@ class Pyber:
         return ax
 
     @classmethod
-    def bubble_charts(cls, x_axis: dict, y_axis: dict, sizes: dict):
+    def chart_bubble_many(cls, x_axis: dict, y_axis: dict, sizes: dict):
+        """Yield many bubble charts.
+        
+        Example:
+            for fig, city_type in Pyber.chart_bubble_many(df_x, df_y, df_s):
+                fig.save(f"{city_type}.png", dpi=Pyber.dpi)
+        """
         for city_type, color in zip(cls.city_types, cls.colors):
             fig = plt.figure(figsize=(8, 5))
             ax = fig.add_subplot(111)
-            Pyber.plot_bubble_chart(
+            Pyber._chart_bubble(
                 ax,
                 x_axis[city_type],
                 y_axis[city_type],
@@ -148,15 +94,16 @@ class Pyber:
                 city_type,
                 color,
             )
-            fig.text(**cls.text_arguments)
+            fig.text(**cls.bubble_text_args)
             yield fig, city_type
 
     @classmethod
-    def bubble_chart_all(cls, x_axis: dict, y_axis: dict, sizes: dict):
+    def chart_bubble_combined(cls, x_axis: dict, y_axis: dict, sizes: dict):
+        """Return a bubble chart combined from many dataframes."""
         fig = plt.figure(figsize=(8, 5))
         ax = fig.add_subplot(111)
         for city_type, color in zip(cls.city_types, cls.colors):
-            Pyber.plot_bubble_chart(
+            Pyber._chart_bubble(
                 ax,
                 x_axis[city_type],
                 y_axis[city_type],
@@ -164,5 +111,35 @@ class Pyber:
                 city_type,
                 color,
             )
-        fig.text(**cls.text_arguments)
+        fig.text(**cls.bubble_text_args)
+        return fig
+
+    @classmethod
+    def chart_timeseries(cls, timeseries_df: pd.DataFrame):
+        style.use('fivethirtyeight')
+        mpl.rcParams["font.size"] = cls.fontsize
+        fig = plt.figure(
+            figsize=(1920/cls.dpi, 612/cls.dpi), 
+            facecolor="white",
+            dpi=cls.dpi)
+        ax = fig.add_subplot(111)
+        ax = timeseries_df.plot(
+            ax = ax,
+            title="Total Fare by City Type",
+            ylabel="Fare($USD)",
+            xlabel="",
+            fontsize=cls.fontsize,
+            colormap = cls.colormap
+        )
+        legend = ax.legend(
+            fontsize=cls.fontsize,
+            labels = cls.city_types,
+            mode="Expanded", 
+            scatterpoints=1, 
+            loc="center", 
+            title="City Type"
+        )
+        for lg in legend.legendHandles:
+            lg._sizes = [75]
+        legend.get_title().set_fontsize(cls.fontsize)
         return fig
