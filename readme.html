@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-07-29 Fri 17:57 -->
+<!-- 2022-07-29 Fri 18:00 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Challenge</title>
@@ -59,7 +59,7 @@ Our first impression of the data was that we had a very unbalanced distribution 
 </p>
 
 
-<div id="org97ef831" class="figure">
+<div id="orgbfe55f3" class="figure">
 <p><img src="./analysis/pyberlib/percentage_drivers.png" alt="percentage_drivers.png" width="400px" />
 </p>
 </div>
@@ -145,6 +145,7 @@ In the following code, we will look for the number of drivers in Urban cities th
 <div class="org-src-container">
 <pre class="src src-python"><span style="color: #339CDB;">import</span> numpy <span style="color: #339CDB;">as</span> np
 <span style="color: #339CDB;">import</span> matplotlib.pyplot <span style="color: #339CDB;">as</span> plt
+<span style="color: #339CDB;">from</span> pathlib <span style="color: #339CDB;">import</span> Path
 
 
 <span style="color: #579C4C;"># </span><span style="color: #579C4C;">Creating lines from Urban to Suburban</span>
@@ -163,7 +164,7 @@ In the following code, we will look for the number of drivers in Urban cities th
 <span style="color: #d4d4d4;">best_fare</span> = total_fares[m]
 
 <span style="color: #579C4C;"># </span><span style="color: #579C4C;">Plotting</span>
-<span style="color: #d4d4d4;">file_path</span> = <span style="color: #c5937c;">"./snd.png"</span>
+<span style="color: #d4d4d4;">file_path</span> = Path(<span style="color: #c5937c;">"analysis"</span>) / <span style="color: #c5937c;">"the_best_fare_per_driver.png"</span>
 plt.plot(rides_per_driver, fare_per_driver, label=<span style="color: #c5937c;">"Urban to Suburban"</span>)
 plt.plot(point[<span style="color: #B5CEA8; font-weight: bold;">0</span>], point[<span style="color: #B5CEA8; font-weight: bold;">1</span>], <span style="color: #c5937c;">"ko"</span>)
 plt.text(
@@ -182,8 +183,8 @@ plt.savefig(file_path, dpi=<span style="color: #B5CEA8; font-weight: bold;">200<
 </div>
 
 
-<div id="orgf646a6b" class="figure">
-<p><img src="./snd.png" alt="snd.png" width="400px" />
+<div id="orgef940c7" class="figure">
+<p><img src="analysis/the_best_fare_per_driver.png" alt="the_best_fare_per_driver.png" width="400px" />
 </p>
 </div>
 
@@ -206,7 +207,7 @@ Because we are concerned about the effects of reducing the number of drivers, we
 Now that we know how many drivers we can move out of the Urban cities, we should find which cities have the most drivers and which ones have the most rides. We can better appreciate the distribution of drivers with a Box and Whiskers chart.
 </p>
 
-<div id="orge97a4e6" class="figure">
+<div id="orgff130d3" class="figure">
 <p><img src="./analysis/pyberlib/citytype_rides.png" alt="citytype_rides.png" width="500px" />
 </p>
 </div>
@@ -284,7 +285,7 @@ Finally, we can generate a time series chart to visualize the Total Fare by city
 </table>
 
 
-<div id="orgd65599a" class="figure">
+<div id="org9a35340" class="figure">
 <p><img src="./analysis/pyberlib/PyBer_fare_summary.png" alt="PyBer_fare_summary.png" width="700px" />
 </p>
 </div>
@@ -327,7 +328,7 @@ Data transformation and visualization are critical tools to help us make decisio
 </div>
 
 
-<div id="orga1712a9" class="figure">
+<div id="orgc32e8cb" class="figure">
 <p><img src="./analysis/ridesharing.png" alt="ridesharing.png" width="600px" />
 </p>
 </div>
@@ -337,7 +338,7 @@ Data transformation and visualization are critical tools to help us make decisio
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Alberto Valdez</p>
-<p class="date">Created: 2022-07-29 Fri 17:57</p>
+<p class="date">Created: 2022-07-29 Fri 18:00</p>
 </div>
 </body>
 </html>

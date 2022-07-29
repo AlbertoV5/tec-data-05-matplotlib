@@ -32,6 +32,7 @@ In the following code, we will look for the number of drivers in Urban cities th
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 # Creating lines from Urban to Suburban
@@ -50,7 +51,7 @@ driver_count = drivers[m]
 best_fare = total_fares[m]
 
 # Plotting
-file_path = "./snd.png"
+file_path = Path("analysis") / "the_best_fare_per_driver.png"
 plt.plot(rides_per_driver, fare_per_driver, label="Urban to Suburban")
 plt.plot(point[0], point[1], "ko")
 plt.text(
@@ -67,7 +68,7 @@ plt.savefig(file_path, dpi=200)
 print(file_path, end="")
 ```
 
-![img](./snd.png)
+![img](analysis/the_best_fare_per_driver.png)
 
 We found that; assuming a linear relationship in the results of Urban and Suburban cities, the number of drivers that would generate the largest Total Fare for Urban cities is `1,902 drivers`. In theory, this follows a supply and demand model, giving us a total of `$42,971.62` Total Fare with that amount of drivers.
 
