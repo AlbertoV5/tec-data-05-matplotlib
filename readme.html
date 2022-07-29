@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2022-07-29 Fri 01:02 -->
+<!-- 2022-07-29 Fri 01:10 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Challenge</title>
@@ -47,26 +47,140 @@
 <h3 id="org1dfe1da">Results</h3>
 <div class="outline-text-3" id="text-org1dfe1da">
 
-<div id="org530efcb" class="figure">
+<div id="org6f33aed" class="figure">
 <p><img src="./analysis/ridesharing.png" alt="ridesharing.png" width="600px" />
 </p>
 </div>
 
 
-<div id="org1c29880" class="figure">
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left">CityType</td>
+<td class="org-right">TotalRides</td>
+<td class="org-right">TotalDrivers</td>
+<td class="org-left">TotalFares</td>
+<td class="org-left">AverageFareperRide</td>
+<td class="org-left">AverageFareperDriver</td>
+</tr>
+
+<tr>
+<td class="org-left">Rural</td>
+<td class="org-right">125</td>
+<td class="org-right">78</td>
+<td class="org-left">$4,327.93</td>
+<td class="org-left">$34.62</td>
+<td class="org-left">$55.49</td>
+</tr>
+
+<tr>
+<td class="org-left">Suburban</td>
+<td class="org-right">625</td>
+<td class="org-right">490</td>
+<td class="org-left">$19,356.33</td>
+<td class="org-left">$30.97</td>
+<td class="org-left">$39.50</td>
+</tr>
+
+<tr>
+<td class="org-left">Urban</td>
+<td class="org-right">1,625</td>
+<td class="org-right">2,405</td>
+<td class="org-left">$39,854.38</td>
+<td class="org-left">$24.53</td>
+<td class="org-left">$16.57</td>
+</tr>
+</tbody>
+</table>
+
+
+<div id="org013a543" class="figure">
 <p><img src="./analysis/pyberlib/citytype_rides.png" alt="citytype_rides.png" width="500px" />
 </p>
 </div>
 
 
 
-<div id="orgec3281e" class="figure">
+<div id="orgd27b6b2" class="figure">
 <p><img src="./analysis/pyberlib/percentage_drivers.png" alt="percentage_drivers.png" width="400px" />
 </p>
 </div>
 
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
-<div id="org34ca941" class="figure">
+
+<colgroup>
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+
+<col  class="org-right" />
+</colgroup>
+<tbody>
+<tr>
+<td class="org-right">date</td>
+<td class="org-right">Rural</td>
+<td class="org-right">Suburban</td>
+<td class="org-right">Urban</td>
+</tr>
+
+<tr>
+<td class="org-right">2019-01-06</td>
+<td class="org-right">187.92</td>
+<td class="org-right">721.60</td>
+<td class="org-right">1661.68</td>
+</tr>
+
+<tr>
+<td class="org-right">2019-01-13</td>
+<td class="org-right">67.65</td>
+<td class="org-right">1105.13</td>
+<td class="org-right">2050.43</td>
+</tr>
+
+<tr>
+<td class="org-right">2019-01-20</td>
+<td class="org-right">306.00</td>
+<td class="org-right">1218.20</td>
+<td class="org-right">1939.02</td>
+</tr>
+
+<tr>
+<td class="org-right">2019-01-27</td>
+<td class="org-right">179.69</td>
+<td class="org-right">1203.28</td>
+<td class="org-right">2129.51</td>
+</tr>
+
+<tr>
+<td class="org-right">2019-02-03</td>
+<td class="org-right">333.08</td>
+<td class="org-right">1042.79</td>
+<td class="org-right">2086.94</td>
+</tr>
+</tbody>
+</table>
+
+
+<div id="orgbd675e9" class="figure">
 <p><img src="./analysis/pyberlib/PyBer_fare_summary.png" alt="PyBer_fare_summary.png" width="700px" />
 </p>
 </div>
@@ -88,12 +202,25 @@
 
 <div id="outline-container-orga14e2df" class="outline-3">
 <h3 id="orga14e2df">Closing Thoughts</h3>
+<div class="outline-text-3" id="text-orga14e2df">
+<div class="org-src-container">
+<pre class="src src-python"><span style="color: #339CDB;">from</span> pyberlib <span style="color: #339CDB;">import</span> Pyber
+
+<span style="color: #d4d4d4;">chart</span> = Pyber.plot_bubble_combined(
+    total_rides_per_city_type,
+    average_fares_per_city_type,
+    average_drivers_per_city_type
+)
+Pyber.savefig(chart, <span style="color: #c5937c;">"ridesharing_all.png"</span>)
+</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Alberto Valdez</p>
-<p class="date">Created: 2022-07-29 Fri 01:02</p>
+<p class="date">Created: 2022-07-29 Fri 01:10</p>
 </div>
 </body>
 </html>
