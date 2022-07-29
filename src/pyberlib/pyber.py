@@ -1,8 +1,8 @@
 """
-Pyber Plotting Library.
-
-Custom plotting configurations for Pyber data.
+Pyber Plotting Class.
 """
+from pathlib import Path
+import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -11,11 +11,14 @@ from matplotlib.colors import ListedColormap
 
 
 class Pyber:
+    """Configs and class methods for pre-made charts."""
+
     dpi = 200
     fontsize = 8
     city_types = ["Rural", "Suburban", "Urban"]
     colors = ["coral", "skyblue", "gold"]
     colormap = ListedColormap(colors, name="PyBer")
+    colormap_reversed = colormap.reversed()
     bubble_text_args = {
         "x": 0.92,
         "y": 0.5,
@@ -27,7 +30,25 @@ class Pyber:
     }
 
     @classmethod
-    def _chart_bubble(
+    def _get_wide_figure(cls) -> plt.Figure:
+        return plt.figure(
+            figsize=(1920 / cls.dpi, 1200 / cls.dpi), facecolor="white", dpi=cls.dpi
+        )
+
+    @classmethod
+    def _get_small_figure(cls) -> plt.Figure:
+        return plt.figure(
+            figsize=(1080 / cls.dpi, 1080 / cls.dpi), facecolor="white", dpi=cls.dpi
+        )
+
+    @classmethod
+    def _get_ultra_wide_figure(cls) -> plt.Figure:
+        return plt.figure(
+            figsize=(1920 / cls.dpi, 612 / cls.dpi), facecolor="white", dpi=cls.dpi
+        )
+
+    @classmethod
+    def _plot_bubble(
         cls,
         ax: plt.Axes,
         x_axis: pd.Series,
@@ -76,17 +97,20 @@ class Pyber:
         return ax
 
     @classmethod
-    def chart_bubble_many(cls, x_axis: dict, y_axis: dict, sizes: dict):
-        """Yield many bubble charts.
-        
+    def plot_bubble_many(
+        cls, x_axis: pd.DataFrame, y_axis: pd.DataFrame, sizes: pd.DataFrame
+    ):
+        """Yield bubble charts per city type.
+
         Example:
-            for fig, city_type in Pyber.chart_bubble_many(df_x, df_y, df_s):
+
+            for fig, city_type in Pyber.plot_bubble_many(df_x, df_y, df_s):
                 fig.save(f"{city_type}.png", dpi=Pyber.dpi)
         """
-        for city_type, color in zip(cls.city_types, cls.colors):
-            fig = plt.figure(figsize=(8, 5))
+        for city_type, color in zip(cls.city_types, cls.colormap_reversed.colors):
+            fig = cls._get_wide_figure()
             ax = fig.add_subplot(111)
-            Pyber._chart_bubble(
+            cls._plot_bubble(
                 ax,
                 x_axis[city_type],
                 y_axis[city_type],
@@ -98,12 +122,14 @@ class Pyber:
             yield fig, city_type
 
     @classmethod
-    def chart_bubble_combined(cls, x_axis: dict, y_axis: dict, sizes: dict):
+    def plot_bubble_combined(
+        cls, x_axis: pd.DataFrame, y_axis: pd.DataFrame, sizes: pd.DataFrame
+    ):
         """Return a bubble chart combined from many dataframes."""
-        fig = plt.figure(figsize=(8, 5))
+        fig = cls._get_wide_figure()
         ax = fig.add_subplot(111)
-        for city_type, color in zip(cls.city_types, cls.colors):
-            Pyber._chart_bubble(
+        for city_type, color in zip(cls.city_types, cls.colormap_reversed.colors):
+            cls._plot_bubble(
                 ax,
                 x_axis[city_type],
                 y_axis[city_type],
@@ -115,31 +141,83 @@ class Pyber:
         return fig
 
     @classmethod
-    def chart_timeseries(cls, timeseries_df: pd.DataFrame):
-        style.use('fivethirtyeight')
+    def plot_box_and_whiskers(
+        cls,
+        dataset: pd.Series,
+        title: str,
+        ylabel: str,
+    ):
+        """Create a Box and Whisker from specified dataset."""
+        fig = cls._get_wide_figure()
+        ax: plt.Axes = fig.add_subplot(111)
+        ax.set_title(title, fontsize=18)
+        ax.set_ylabel(ylabel, fontsize=14)
+        ax.set_xlabel("City Types", fontsize=14)
+        mpl.rcParams["font.size"] = cls.fontsize + 2
+        x_labels = cls.city_types
+        boxplots = ax.boxplot(
+            [dataset[city_type] for city_type in reversed(cls.city_types)],
+            labels=x_labels,
+            patch_artist=True,
+        )
+        for box, color in zip(boxplots["boxes"], reversed(cls.colors)):
+            box.set_facecolor(color)
+        for line in boxplots["medians"]:
+            line.set_color("black")
+        upper_lim = np.max([np.max(i) for i in dataset])
+        step = 3.0 if upper_lim < 40 else 5.0
+        yticks = np.arange(0, upper_lim + step, step)
+        ax.set_yticks(yticks)
+        ax.grid(True)
+        return fig
+
+    @classmethod
+    def plot_pie_chart(cls, df: pd.DataFrame, title: str):
+        """Create Pie Chart of percentages from DataFrame."""
+        fig = cls._get_small_figure()
+        ax: plt.Axes = fig.add_subplot(111)
+        ax.pie(
+            df,
+            labels=cls.city_types,
+            colors=cls.colormap_reversed.colors,
+            explode=[0, 0, 0.1],
+            autopct="%1.1f%%",
+            shadow=True,
+            startangle=150,
+        )
+        ax.set_title(title)
+        mpl.rcParams["font.size"] = cls.fontsize + 2
+        return fig
+
+    @classmethod
+    def plot_timeseries(cls, timeseries_df: pd.DataFrame) -> plt.Figure:
+        """Create a Total Fare by City Type timeseries chart."""
+        style.use("fivethirtyeight")
         mpl.rcParams["font.size"] = cls.fontsize
-        fig = plt.figure(
-            figsize=(1920/cls.dpi, 612/cls.dpi), 
-            facecolor="white",
-            dpi=cls.dpi)
+        fig = cls._get_ultra_wide_figure()
         ax = fig.add_subplot(111)
         ax = timeseries_df.plot(
-            ax = ax,
+            ax=ax,
             title="Total Fare by City Type",
             ylabel="Fare($USD)",
             xlabel="",
             fontsize=cls.fontsize,
-            colormap = cls.colormap
+            colormap=cls.colormap_reversed,
         )
         legend = ax.legend(
             fontsize=cls.fontsize,
-            labels = cls.city_types,
-            mode="Expanded", 
-            scatterpoints=1, 
-            loc="center", 
-            title="City Type"
+            labels=cls.city_types,
+            mode="Expanded",
+            scatterpoints=1,
+            loc="center",
+            title="City Type",
         )
         for lg in legend.legendHandles:
             lg._sizes = [75]
         legend.get_title().set_fontsize(cls.fontsize)
         return fig
+
+    @classmethod
+    def savefig(cls, fig: plt.Figure, path: str) -> None:
+        """Use Pyber config to save figure in given path."""
+        fig.savefig(path, dpi=cls.dpi, bbox_inches="tight")

@@ -115,7 +115,7 @@ for typ, color in zip(CITY_TYPES, colors):
     ax = fig.add_subplot(111)
     plot_bubble_chart(ax, typ, color)
     fig.text(**text_arguments)
-    fig.savefig(output_path / f"ridesharing_{typ}.jpeg", dpi=300, bbox_inches="tight")
+    fig.savefig(output_path / f"ridesharing_{typ}.png", dpi=300, bbox_inches="tight")
 
 # Combined Plot
 fig = plt.figure(figsize=(8, 5))
@@ -123,7 +123,7 @@ ax = fig.add_subplot(111)
 for typ, color in zip(CITY_TYPES, colors):
     plot_bubble_chart(ax, typ, color)
 fig.text(**text_arguments)
-fig.savefig(output_path / f"ridesharing.jpeg", dpi=300, bbox_inches="tight")
+fig.savefig(output_path / f"ridesharing.png", dpi=300, bbox_inches="tight")
 
 # %%
 # Get stats of all dataframes by city type
@@ -202,7 +202,7 @@ plot_box_and_whisker(
     ride_count,
     "Ride Count Data (2019)",
     "Number of Rides",
-    "ride_count_data.jpeg",
+    "ride_count_data.png",
     np.arange(0, 45, step=3.0),
 )
 # Fares
@@ -211,7 +211,7 @@ plot_box_and_whisker(
     fares,
     "Ride Fare Data (2019)",
     "Fare($USD)",
-    "ride_fare_data.jpeg",
+    "ride_fare_data.png",
     np.arange(0, 65, step=5.0),
 )
 # Drivers
@@ -220,7 +220,7 @@ plot_box_and_whisker(
     drivers,
     "Drivers Data (2019)",
     "Drivers count",
-    "ride_drivers_data.jpeg",
+    "ride_drivers_data.png",
     np.arange(0, 80, step=5.0),
 )
 # %%
@@ -252,19 +252,19 @@ plot_pie_chart(
     plt.figure(figsize=(8, 5)),
     COL.FARE,
     "% of Total Fares by City Type",
-    "percentage_total_fares.jpeg",
+    "percentage_total_fares.png",
 )
 # Ride counts
 plot_pie_chart(
     plt.figure(figsize=(8, 5)),
     COL.RIDE,
     "% of Total Rides by City Type",
-    "percentage_total_rides.jpeg",
+    "percentage_total_rides.png",
 )
 # Drivers
 plot_pie_chart(
     plt.figure(figsize=(8, 5)),
     COL.DRIVERS,
     "% of Total Drivers by City Type",
-    "percentage_total_drivers.jpeg",
+    "percentage_total_drivers.png",
 )
