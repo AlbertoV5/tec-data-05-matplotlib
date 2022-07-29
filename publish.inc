@@ -22,7 +22,7 @@ format
         :base-directory "."
         :base-extension "org"
         :publishing-directory "."
-        :publishing-functi  on org-html-publish-to-html
+        :publishing-function org-html-publish-to-html
         :recursive t
         ;;:makeindex t
       )))

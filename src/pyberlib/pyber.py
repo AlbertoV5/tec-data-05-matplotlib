@@ -36,7 +36,7 @@ class Pyber:
         )
 
     @classmethod
-    def _get_small_figure(cls) -> plt.Figure:
+    def _get_squared_figure(cls) -> plt.Figure:
         return plt.figure(
             figsize=(1080 / cls.dpi, 1080 / cls.dpi), facecolor="white", dpi=cls.dpi
         )
@@ -154,13 +154,13 @@ class Pyber:
         ax.set_ylabel(ylabel, fontsize=14)
         ax.set_xlabel("City Types", fontsize=14)
         mpl.rcParams["font.size"] = cls.fontsize + 2
-        x_labels = cls.city_types
+        x_labels = [city_type for city_type in reversed(cls.city_types)]
         boxplots = ax.boxplot(
             [dataset[city_type] for city_type in reversed(cls.city_types)],
             labels=x_labels,
             patch_artist=True,
         )
-        for box, color in zip(boxplots["boxes"], reversed(cls.colors)):
+        for box, color in zip(boxplots["boxes"], cls.colors):
             box.set_facecolor(color)
         for line in boxplots["medians"]:
             line.set_color("black")
@@ -174,7 +174,7 @@ class Pyber:
     @classmethod
     def plot_pie_chart(cls, df: pd.DataFrame, title: str):
         """Create Pie Chart of percentages from DataFrame."""
-        fig = cls._get_small_figure()
+        fig = cls._get_squared_figure()
         ax: plt.Axes = fig.add_subplot(111)
         ax.pie(
             df,
